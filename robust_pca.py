@@ -8,7 +8,7 @@ class RPCA:
         self.__S = torch.zeros_like(self.__M)
         self.__Y = torch.zeros_like(self.__M)
         self.__mu = mu if mu else (torch.prod(torch.tensor(self.__M.shape).cuda()) / (
-                torch.tensor(4).cuda() * torch.norm(self.__M, p=2)))
+                torch.tensor(4).cuda() * torch.norm(self.__M, p=1)))
         # Cited from: Understanding Robust Principal Component Analysis (RPCA)
         # Author: AneetKumard
         # Link: https://medium.com/@aneetkumard8/understanding-robust-principal-component-analysis-rpca-d722aab80202
