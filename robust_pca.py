@@ -4,8 +4,8 @@ import torch
 class RPCA:
     def __init__(self, matrix, mu=None, lmd=None):
         self.__M = torch.tensor(matrix, dtype=torch.float).cuda()
-        self.__L = torch.zeros_like(self.__M)
-        self.__S = torch.zeros_like(self.__M)
+        self.L = torch.zeros_like(self.__M)
+        self.S = torch.zeros_like(self.__M)
         self.__Y = torch.zeros_like(self.__M)
         self.__mu = mu if mu else (torch.prod(torch.tensor(self.__M.shape).cuda()) / (
                 torch.tensor(4).cuda() * torch.norm(self.__M, p=1)))
@@ -33,11 +33,12 @@ class RPCA:
             1).cuda()  # The initialized 1 is large enough for 'lowerlimitvalue' to enter the judgment
         for _ in range(max_iter_time):
             if L2norm_value > self.__lower_limit_value:
-                self.__L = self.singular_value_threshold(self.__M - self.__S - (1 / self.__mu) * self.__Y)
-                self.__S = self.shrinkage(self.__M - self.__L + (1 / self.__mu) * self.__Y)
-                self.__Y = self.__Y + self.__mu * (self.__M - self.__L - self.__S)
+                self.L = self.singular_value_threshold(self.__M - self.S - (1 / self.__mu) * self.__Y)
+                self.S = self.shrinkage(self.__M - self.L + (1 / self.__mu) * self.__Y)
+                self.__Y = self.__Y + self.__mu * (self.__M - self.L - self.S)
 
-                L2norm_value = torch.norm(self.__M - self.__L - self.__S, p=2)
+                L2norm_value = torch.norm(self.__M - self.L - self.S, p=2)
                 print('||M-L-S||:{}'.format(L2norm_value))
             else:
                 break
+        return self.L, self.S
