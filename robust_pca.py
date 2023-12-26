@@ -29,7 +29,7 @@ class RPCA:
         # Link: https://arxiv.org/abs/0912.3599(Robust Principal Component Analysis?)
 
     def __singular_value_threshold(self, tau, matrix):
-        u, sigma, v = torch.svd(matrix)
+        u, sigma, v = torch.linalg.svd(matrix, full_matrices=False)
         sigma = torch.diag(
             self.__shrinkage(tau, sigma)
         )  # Thresholding of singular values and construction of diagonal matrices
