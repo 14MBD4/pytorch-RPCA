@@ -2,16 +2,16 @@ from torch import Tensor
 import torch
 
 
-def _shrinkage(tau: Tensor, M: Tensor) -> Tensor:
+def _shrinkage(tau: float, M: Tensor) -> Tensor:
     return M.sign() * torch.maximum(M.abs() - tau, torch.zeros_like(M))
 
 
-def _singular_value_threshold(tau: Tensor, M: Tensor) -> Tensor:
+def _singular_value_threshold(tau: float, M: Tensor) -> Tensor:
     u, sigma, v = torch.linalg.svd(M, full_matrices=False)
     return u @ _shrinkage(tau, sigma.diag()) @ v
 
 
-def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e-7, max_iter_pass: int = 500) -> tuple[Tensor, Tensor]:  # type: ignore
+def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e-7, max_iter_pass: int = 500, devices="cpu") -> tuple[Tensor, Tensor]:  # type: ignore
     """Robust PCA
 
     Args:
@@ -34,23 +34,20 @@ def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e
     Returns:
         Tuple containing the low-rank component (L) and the sparse component (S).
     """
-    mu: Tensor
     if not mu:
-        mu = torch.prod(torch.tensor(M.shape)) / (4 * torch.linalg.norm(M, ord=1))
-    elif mu <= 0:
+        mu = (
+            torch.prod(torch.tensor(M.shape, device=devices))
+            / (4 * torch.linalg.norm(M, ord=1)).item()
+        )
+    if mu <= 0:
         raise ValueError("mu must be a positive number")
-    else:
-        mu = torch.tensor(mu)
 
-    lmd: Tensor
     if not lmd:
-        lmd = 1 / torch.sqrt(torch.max(torch.tensor(M.shape)))
-    else:
-        lmd = torch.tensor(lmd)
+        lmd = 1 / torch.sqrt(torch.max(torch.tensor(M.shape, device=devices))).item()
 
-    L = torch.zeros_like(M)
-    S = torch.zeros_like(M)
-    Y = torch.zeros_like(M)
+    L = torch.zeros_like(M, device=devices)
+    S = torch.zeros_like(M, device=devices)
+    Y = torch.zeros_like(M, device=devices)
 
     stop_boundary = delta * torch.linalg.norm(M, ord="fro")
     frobenius_norm_value = 0xDEADBEEF  # This vaule is big enough to enter the iteration step at the beginning
