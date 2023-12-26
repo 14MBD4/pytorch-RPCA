@@ -48,7 +48,7 @@ class RPCA:
         for _ in range(max_iter_time):
             if L2norm_value > self.__lower_limit_value:
                 self.L = self.singular_value_threshold(
-                    self.__M - self.S - (1 / self.__mu) * self.__Y
+                    self.__M - self.S + (1 / self.__mu) * self.__Y
                 )
                 self.S = self.shrinkage(self.__M - self.L + (1 / self.__mu) * self.__Y)
                 self.__Y = self.__Y + self.__mu * (self.__M - self.L - self.S)
