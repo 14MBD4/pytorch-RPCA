@@ -28,16 +28,16 @@ class RPCA:
         # Based on the original text
         # Link: https://arxiv.org/abs/0912.3599(Robust Principal Component Analysis?)
 
-    def __singular_value_threshold(self, matrix):
+    def __singular_value_threshold(self, tau, matrix):
         u, sigma, v = torch.svd(matrix)
-        s = torch.diag(
-            self.__shrinkage(sigma)
+        sigma = torch.diag(
+            self.__shrinkage(tau, sigma)
         )  # Thresholding of singular values and construction of diagonal matrices
-        return torch.matmul(torch.matmul(u, s), v)
+        return torch.matmul(torch.matmul(u, sigma), v)
 
-    def __shrinkage(self, matrix):
+    def __shrinkage(self, tau, matrix):
         return torch.sign(matrix) * torch.max(
-            torch.abs(matrix) - (self.__lmd * self.__mu),
+            torch.abs(matrix) - tau,
             torch.zeros(matrix.shape),
         )
 
@@ -48,10 +48,11 @@ class RPCA:
         for _ in range(max_iter_pass):
             if L2norm_value > self.__lower_limit_value:
                 self.L = self.__singular_value_threshold(
-                    self.__M - self.S + (1 / self.__mu) * self.__Y
+                    1 / self.__mu, self.__M - self.S + (1 / self.__mu) * self.__Y
                 )
                 self.S = self.__shrinkage(
-                    self.__M - self.L + (1 / self.__mu) * self.__Y
+                    self.__lmd / self.__mu,
+                    self.__M - self.L + (1 / self.__mu) * self.__Y,
                 )
                 self.__Y = self.__Y + self.__mu * (self.__M - self.L - self.S)
 
