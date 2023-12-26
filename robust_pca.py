@@ -21,7 +21,7 @@ class RPCA:
         self.__lmd = (
             lmd
             if lmd
-            else (torch.tensor(1) / torch.sqrt(torch.max(torch.tensor(self.__M.shape))))
+            else torch.tensor(1) / torch.sqrt(torch.max(torch.tensor(self.__M.shape)))
         )
         self.__delta = torch.tensor(1e-7)
         self.__lower_limit_value = self.__delta * torch.norm(self.__M, p=2)
@@ -31,21 +31,21 @@ class RPCA:
     def __singular_value_threshold(self, matrix):
         u, sigma, v = torch.svd(matrix)
         s = torch.diag(
-            self.shrinkage(sigma)
+            self.__shrinkage(sigma)
         )  # Thresholding of singular values and construction of diagonal matrices
         return torch.matmul(torch.matmul(u, s), v)
 
     def __shrinkage(self, matrix):
         return torch.sign(matrix) * torch.max(
-            (torch.abs(matrix) - (self.__lmd * self.__mu)),
+            torch.abs(matrix) - (self.__lmd * self.__mu),
             torch.zeros(matrix.shape),
         )
 
-    def alternating_directions(self, max_iter_time=500):
+    def alternating_directions(self, max_iter_pass=500):
         L2norm_value = torch.tensor(
             1
         )  # The initialized 1 is large enough for 'lowerlimitvalue' to enter the judgment
-        for _ in range(max_iter_time):
+        for _ in range(max_iter_pass):
             if L2norm_value > self.__lower_limit_value:
                 self.L = self.__singular_value_threshold(
                     self.__M - self.S + (1 / self.__mu) * self.__Y
