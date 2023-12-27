@@ -8,7 +8,7 @@ def _shrinkage(tau: float, M: Tensor) -> Tensor:
 
 def _singular_value_threshold(tau: float, M: Tensor) -> Tensor:
     u, sigma, v = torch.linalg.svd(M, full_matrices=False)
-    return u @ _shrinkage(tau, sigma).diag() @ v
+    return u @ _shrinkage(tau, sigma.diag()) @ v
 
 
 def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e-7, max_iter_pass: int = 500, devices="cpu") -> tuple[Tensor, Tensor]:  # type: ignore
@@ -60,9 +60,8 @@ def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e
         current_pass += 1
         L = _singular_value_threshold(1 / mu, M - S + (1 / mu) * Y)
         S = _shrinkage(lmd / mu, M - L + (1 / mu) * Y)
-        tmp = M - L - S
-        Y = Y + mu * tmp
-        frobenius_norm_value = torch.linalg.norm(tmp, ord="fro")
+        Y = Y + mu * (M - L - S)
+        frobenius_norm_value = torch.linalg.norm(M - L - S, ord="fro")
         print(f"Current frobenius norm value at {current_pass}: {frobenius_norm_value}")
 
     return L, S

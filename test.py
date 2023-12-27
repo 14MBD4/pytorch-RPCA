@@ -8,7 +8,7 @@ import robust_pca
 
 if __name__ == "__main__":
     X = torch.from_numpy(
-        np.array(cv2.imread("out.jpg", cv2.IMREAD_GRAYSCALE), dtype=np.float32),
+        np.array(cv2.imread("out.jpg", cv2.IMREAD_GRAYSCALE), dtype=np.float64),
     ).to("cuda:0")
 
     plt.figure(1)
