@@ -37,7 +37,7 @@ def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e
     if not mu:
         mu = (
             torch.prod(torch.tensor(M.shape))
-            / (torch.tensor(4) * torch.vector.norm(M, ord=1))
+            / (torch.tensor(4) * torch.linalg.vector_norm(M, ord=1))
         ).item()
 
     if mu <= 0:
