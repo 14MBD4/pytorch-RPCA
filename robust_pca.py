@@ -1,5 +1,5 @@
-from torch import Tensor
 import torch
+from torch import Tensor
 
 
 def _shrinkage(tau: float, M: Tensor) -> Tensor:
@@ -37,7 +37,7 @@ def robust_pca(M: Tensor, mu: float = None, lmd: float = None, delta: float = 1e
     if not mu:
         mu = (
             torch.prod(torch.tensor(M.shape))
-            / (torch.tensor(4) * torch.linalg.norm(M, ord=1))
+            / (torch.tensor(4) * torch.norm(M, p=1))
         ).item()
 
     if mu <= 0:
